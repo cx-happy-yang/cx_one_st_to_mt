@@ -31,8 +31,15 @@ if __name__ == '__main__':
     groups = get_groups(realm=cxone_tenant_name)
     projects = get_all_projects()
     for project in projects:
+        project_name = project.name
         project_assigned_group_ids = project.groups
-        group_names = [list(filter(lambda r: r.id == group_id, groups))[0].name for group_id in project_assigned_group_ids]
+        group_names = []
+        for group_id in project_assigned_group_ids:
+            logger.info(f"project_name: {project_name}, group_id: {group_id}")
+            filtered_groups = list(filter(lambda r: r.id == group_id, groups))
+            if filtered_groups:
+                group_name = filtered_groups[0].name
+                group_names.append(group_name)
         project.groups = group_names
     applications = get_a_list_of_applications(limit=100).applications
 
