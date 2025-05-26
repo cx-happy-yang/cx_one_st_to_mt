@@ -139,8 +139,22 @@ def insert_into_db(result_data: List[dict]):
     con.close()
 
 
+def get_project_branch_from_db():
+    result = set()
+    con = sqlite3.connect("results.db")
+    try:
+        with con:
+            for row in con.execute("SELECT project_name, branch FROM results"):
+                result.add((row[0], row[1]))
+    except sqlite3.IntegrityError:
+        print("couldn't add data twice")
+    con.close()
+    return list(result)
+
+
 if __name__ == '__main__':
     projects = get_all_projects()
+    projects_branches_in_db = get_project_branch_from_db()
     for project in projects:
         project_id = project.id
         project_name = project.name
@@ -148,6 +162,11 @@ if __name__ == '__main__':
         if not branches:
             continue
         for branch in branches:
+            logger.info(f"project_name: {project_name}, branch: {branch}")
+            filtered_pb = list(filter(lambda r: r[0] == project_name and r[1] == branch, projects_branches_in_db))
+            if filtered_pb:
+                logger.info(f"branch already exist in datbase! Skip!")
+                continue
             scans_collection = get_a_list_of_scans(limit=1, project_id=project_id, branch=branch)
             if not scans_collection.scans:
                 continue
