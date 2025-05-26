@@ -28,7 +28,9 @@ __all__ = ["logger"]
 
 if __name__ == '__main__':
     cxone_tenant_name = "coupangst"
+    logger.info("get all groups")
     groups = get_groups(realm=cxone_tenant_name)
+    logger.info("get all projects")
     projects = get_all_projects()
     for project in projects:
         project_name = project.name
@@ -41,6 +43,7 @@ if __name__ == '__main__':
                 group_name = filtered_groups[0].name
                 group_names.append(group_name)
         project.groups = group_names
+    logger.info("get all applications")
     applications = get_a_list_of_applications(limit=100).applications
 
     data = {
