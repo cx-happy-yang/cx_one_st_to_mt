@@ -1,10 +1,8 @@
 import pickle
-from CheckmarxPythonSDK.CxOne.AccessControlAPI import (
-    get_group_by_name
-)
 from CheckmarxPythonSDK.CxOne.KeycloakAPI import (
     create_group,
     create_subgroup,
+    get_group_by_name,
 )
 from typing import List
 from CheckmarxPythonSDK.CxOne import (
