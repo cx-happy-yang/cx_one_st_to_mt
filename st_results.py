@@ -125,8 +125,11 @@ INSERT INTO results VALUES (
 
 
 def insert_into_db(result_data: List[dict]):
+    logger.info("insert data into database results.db")
     con = sqlite3.connect("results.db")
+    logger.info(f"run sql: {sql_create_table}")
     con.execute(sql_create_table)
+    logger.info(f"run sql: {sql_create_index}")
     con.execute(sql_create_index)
     try:
         with con:
@@ -142,6 +145,10 @@ def insert_into_db(result_data: List[dict]):
 def get_project_branch_from_db():
     result = set()
     con = sqlite3.connect("results.db")
+    logger.info(f"run sql: {sql_create_table}")
+    con.execute(sql_create_table)
+    logger.info(f"run sql: {sql_create_index}")
+    con.execute(sql_create_index)
     try:
         with con:
             for row in con.execute("SELECT project_name, branch FROM results"):
@@ -167,11 +174,14 @@ if __name__ == '__main__':
             if filtered_pb:
                 logger.info(f"branch already exist in database! Skip!")
                 continue
-            scans_collection = get_a_list_of_scans(limit=1, project_id=project_id, branch=branch)
+            logger.info("get last scan")
+            scans_collection = get_a_list_of_scans(limit=1, project_id=project_id, branch=branch, sort=["-created_at"])
             if not scans_collection.scans:
                 continue
             scan_id = scans_collection.scans[0].id
+            logger.info(f"scan id: {scan_id}")
             scan_result = get_sast_result(project_name, branch, scan_id)
+            logger.info(f"get last scan result")
             if not scan_result:
                 continue
             insert_into_db(scan_result)
