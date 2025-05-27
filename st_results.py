@@ -165,6 +165,8 @@ if __name__ == '__main__':
     for project in projects:
         project_id = project.id
         project_name = project.name
+        if project_name in ["CxPSEMEA-Query Migration Project"]:
+            continue
         branches = get_branches(limit=2048, project_id=project_id)
         if not branches:
             continue
@@ -183,5 +185,6 @@ if __name__ == '__main__':
             scan_result = get_sast_result(project_name, branch, scan_id)
             logger.info(f"get last scan result")
             if not scan_result:
+                logger.info("No scan result, Skip!")
                 continue
             insert_into_db(scan_result)
