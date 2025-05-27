@@ -235,7 +235,7 @@ if __name__ == '__main__':
     groups = data.get("groups")
     projects = data.get("projects")
     applications = data.get("applications")
-    cxone_tenant_name = "happy"
+    cxone_tenant_name = "coupangmst"
     groups_in_mt_tenant = get_groups(cxone_tenant_name)
     groups_not_created = []
     for group in groups:
