@@ -201,7 +201,8 @@ def process_groups_projects_applications(groups, projects, applications, cxone_t
             )
             group["id"] = group_id
         except Exception:
-            add_failed_message(f"group_name: {group.get("name")}")
+            group_name = group.get("name")
+            add_failed_message(f"group_name: {group_name}")
             continue
     for project in projects:
         try:
@@ -211,13 +212,15 @@ def process_groups_projects_applications(groups, projects, applications, cxone_t
                 sca_last_sast_scan_time=2
             )
         except Exception:
-            add_failed_message(f"project_name: {project.get("name")}")
+            project_name = project.get("name")
+            add_failed_message(f"project_name: {project_name}")
             continue
     for application in applications:
         try:
             process_application(application)
         except Exception:
-            add_failed_message(f"application_name: {application.get("name")}")
+            application_name = application.get("name")
+            add_failed_message(f"application_name: {application_name}")
             continue
 
 
