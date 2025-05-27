@@ -239,4 +239,5 @@ if __name__ == '__main__':
         group_in_mt = list(filter(lambda r: r.name == group_name, groups_in_mt_tenant))
         if not group_in_mt:
             groups_not_created.append(group)
+    logger.info(f"{groups_not_created}")
     process_groups_projects_applications(groups_not_created, projects, applications, cxone_tenant_name)
