@@ -11,6 +11,7 @@ from typing import List
 from CheckmarxPythonSDK.CxOne import (
     get_a_list_of_applications,
     create_an_application,
+    get_all_projects,
     get_a_list_of_projects,
     create_a_project,
     define_parameters_in_the_input_list_for_a_specific_project,
@@ -239,5 +240,23 @@ if __name__ == '__main__':
         group_in_mt = list(filter(lambda r: r.name == group_name, groups_in_mt_tenant))
         if not group_in_mt:
             groups_not_created.append(group)
-    logger.info(f"{groups_not_created}")
-    process_groups_projects_applications(groups_not_created, projects, applications, cxone_tenant_name)
+    logger.info(f"groups_not_created: {groups_not_created}")
+    projects_not_created = []
+    projects_in_mt_tenant = get_all_projects()
+    for project in projects:
+        project_name = project.get("name")
+        project_in_mt = list(filter(lambda r: r.name == project_name, projects_in_mt_tenant))
+        if not project_in_mt:
+            projects_not_created.append(project)
+    logger.info(f"projects_not_created: {projects_not_created}")
+    applications_not_created = []
+    applications_in_mt_tenant = get_a_list_of_applications(limit=100)
+    for application in applications:
+        application_name = application.get("name")
+        application_in_mt = list(filter(lambda r: r.name == application_name, applications_in_mt_tenant))
+        if not application_in_mt:
+            applications_not_created.append(application)
+    logger.info(f"applications_not_created: {applications_not_created}")
+    process_groups_projects_applications(
+        groups_not_created, projects_not_created, applications_not_created, cxone_tenant_name
+    )
