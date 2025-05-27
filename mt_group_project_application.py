@@ -235,7 +235,7 @@ if __name__ == '__main__':
     groups = data.get("groups")
     projects = data.get("projects")
     applications = data.get("applications")
-    cxone_tenant_name = "coupangmst"
+    cxone_tenant_name = "happy"
     groups_in_mt_tenant = get_groups(cxone_tenant_name)
     groups_not_created = []
     for group in groups:
@@ -253,7 +253,7 @@ if __name__ == '__main__':
             projects_not_created.append(project)
     logger.info(f"projects_not_created: {projects_not_created}")
     applications_not_created = []
-    applications_in_mt_tenant = get_a_list_of_applications(limit=100)
+    applications_in_mt_tenant = get_a_list_of_applications(limit=100).applications
     for application in applications:
         application_name = application.get("name")
         application_in_mt = list(filter(lambda r: r.name == application_name, applications_in_mt_tenant))
