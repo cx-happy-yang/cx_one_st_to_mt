@@ -170,7 +170,11 @@ if __name__ == '__main__':
         branches = get_branches(limit=2048, project_id=project_id)
         if not branches:
             continue
+        branches_to_be_search = []
         for branch in branches:
+            if branch in ["master", "main", "release", "rc", "develop", "stage"]:
+                branches_to_be_search.append(branch)
+        for branch in branches_to_be_search:
             logger.info(f"project_name: {project_name}, branch: {branch}")
             filtered_pb = list(filter(lambda r: r[0] == project_name and r[1] == branch, projects_branches_in_db))
             if filtered_pb:
