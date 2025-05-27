@@ -1,5 +1,6 @@
 import pickle
 from CheckmarxPythonSDK.CxOne.AccessControlAPI import (
+    get_groups,
     get_group_by_name
 )
 from CheckmarxPythonSDK.CxOne.KeycloakAPI import (
@@ -98,7 +99,7 @@ def create_root_group_if_not_exist(cxone_tenant_name, root_group_name) -> str:
 
 def process_project(
         project_data: dict,
-        groups_data: List[dict],
+        groups_data: List[dict] = None,
         sca_last_sast_scan_time: int = 2
 ) -> str:
     project_criticality = project_data.get("criticality")
@@ -114,11 +115,11 @@ def process_project(
         project = create_a_project(
             project_input=ProjectInput(
                 name=project_name,
-                groups=[
-                    list(
-                        filter(lambda r: r.get("name") == group_name, groups_data)
-                    )[0].get("id") for group_name in project_groups
-                ],
+                # groups=[
+                #     list(
+                #         filter(lambda r: r.get("name") == group_name, groups_data)
+                #     )[0].get("id") for group_name in project_groups
+                # ],
                 repo_url=project_repo_url,
                 main_branch=project_main_branch,
                 origin=project_origin,
@@ -192,19 +193,36 @@ def process_application(
 
 def process_groups_projects_applications(groups, projects, applications, cxone_tenant_name):
     for group in groups:
-        group_id = get_or_create_groups(
-            group_full_name=group.get("name"),
-            cxone_tenant_name=cxone_tenant_name
-        )
-        group["id"] = group_id
+        try:
+            group_id = get_or_create_groups(
+                group_full_name=group.get("name"),
+                cxone_tenant_name=cxone_tenant_name
+            )
+            group["id"] = group_id
+        except Exception:
+            add_failed_message(f"group_name: {group.get("name")}")
+            continue
     for project in projects:
-        process_project(
-            project_data=project,
-            groups_data=groups,
-            sca_last_sast_scan_time=2
-        )
+        try:
+            process_project(
+                project_data=project,
+                # groups_data=groups,
+                sca_last_sast_scan_time=2
+            )
+        except Exception:
+            add_failed_message(f"project_name: {project.get("name")}")
+            continue
     for application in applications:
-        process_application(application)
+        try:
+            process_application(application)
+        except Exception:
+            add_failed_message(f"application_name: {application.get("name")}")
+            continue
+
+
+def add_failed_message(message):
+    with open("failure.txt", "a") as file:
+        file.write(message)
 
 
 if __name__ == '__main__':
@@ -214,4 +232,11 @@ if __name__ == '__main__':
     projects = data.get("projects")
     applications = data.get("applications")
     cxone_tenant_name = "coupangmst"
-    process_groups_projects_applications(groups, projects, applications, cxone_tenant_name)
+    groups_in_mt_tenant = get_groups(cxone_tenant_name)
+    groups_not_created = []
+    for group in groups:
+        group_name = group.get("name")
+        group_in_mt = list(filter(lambda r: r.name == group_name, groups_in_mt_tenant))
+        if not group_in_mt:
+            groups_not_created.append(group)
+    process_groups_projects_applications(groups_not_created, projects, applications, cxone_tenant_name)
