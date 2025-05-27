@@ -165,7 +165,7 @@ if __name__ == '__main__':
             logger.info(f"project_name: {project_name}, branch: {branch}")
             filtered_pb = list(filter(lambda r: r[0] == project_name and r[1] == branch, projects_branches_in_db))
             if filtered_pb:
-                logger.info(f"branch already exist in datbase! Skip!")
+                logger.info(f"branch already exist in database! Skip!")
                 continue
             scans_collection = get_a_list_of_scans(limit=1, project_id=project_id, branch=branch)
             if not scans_collection.scans:
