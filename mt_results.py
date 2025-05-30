@@ -51,13 +51,11 @@ def get_predicates_data_from_db(project_name: str, branch: str) -> dict:
     result = {}
     con = sqlite3.connect("results.db")
     logger.info("get data from database")
+    sql_query = (f"SELECT project_name, branch, result_state, result_severity, comment, similarity_id FROM results "
+                 f"where project_name='{project_name}' and branch='{branch}';")
     try:
         with con:
-            for row in con.execute(
-                    f"""SELECT project_name, branch, result_state, result_severity, comment, similarity_id FROM results
-                where project_name={project_name} and branch={branch}
-                """
-            ):
+            for row in con.execute(sql_query):
                 result_state = row[2]
                 result_severity = row[3]
                 comment = row[4]
@@ -69,8 +67,8 @@ def get_predicates_data_from_db(project_name: str, branch: str) -> dict:
                         "comment": comment,
                     }
                 })
-    except sqlite3.IntegrityError:
-        print("couldn't read data twice")
+    except sqlite3.OperationalError:
+        logger.info(f"couldn't read predicates data for project: {project_name}, branch: {branch}")
     con.close()
     return result
 
@@ -83,7 +81,7 @@ def read_from_project_branch_pickle_file() -> dict:
         with open(pickle_file_name, 'rb') as f:
             data = pickle.load(f)
         return data
-    except FileExistsError:
+    except FileNotFoundError:
         return {}
 
 
@@ -94,7 +92,7 @@ def write_into_project_branch_pickle_file(project_name, branch):
         data.update({project_name: [branch]})
     else:
         data.update({project_name: branches.append(branch)})
-    with open(pickle_file_name, "rwb") as f:
+    with open(pickle_file_name, "wb") as f:
         pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
 
 
@@ -110,7 +108,7 @@ def apply_predicates(scan_results, predicates_data: dict, project_id: str, scan_
         comment = predicates_data.get(similarity_id).get("comment")
         request_body.append(
             {
-                "similarityId": similarity_id,
+                "similarityId": str(similarity_id),
                 "projectId": project_id,
                 "scanId": scan_id,
                 "severity": result_severity,
@@ -119,6 +117,8 @@ def apply_predicates(scan_results, predicates_data: dict, project_id: str, scan_
             }
         )
     predicate_severity_and_state_by_similarity_id_and_project_id(request_body=request_body)
+    logger.info(f"finish apply predicates to project: {project_name}, branch: {branch}")
+    write_into_project_branch_pickle_file(project_name, branch)
 
 
 if __name__ == '__main__':
@@ -154,6 +154,9 @@ if __name__ == '__main__':
                 logger.info("No scan result, Skip!")
                 continue
             predicates_data = get_predicates_data_from_db(project_name=project_name, branch=branch)
+            if not predicates_data:
+                logger.info("predicates_data is empty, skip!")
+                continue
             apply_predicates(
                 scan_results=scan_results, predicates_data=predicates_data, project_id=project_id, scan_id=scan_id
             )
