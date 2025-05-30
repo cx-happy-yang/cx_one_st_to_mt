@@ -19,30 +19,11 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 time_stamp_format = "%Y-%m-%dT%H:%M:%S.%fZ"
 
-__all__ = ["logger"]
+__all__ = ["logger", "get_all_sast_result_by_scan_id"]
 
 
 def get_sast_result(project_name: str, branch: str, scan_id: str) -> List[dict]:
-    offset = 0
-    limit = 100
-    page = 1
-    sast_results_collection = get_sast_results_by_scan_id(
-        scan_id=scan_id, offset=offset, limit=limit,
-        sort=["+status", "+severity", "-queryname"]
-    )
-    total_count = int(sast_results_collection.get("totalCount"))
-    sast_results = sast_results_collection.get("results")
-    if total_count > limit:
-        while True:
-            offset = page * limit
-            if offset >= total_count:
-                break
-            sast_results_collection = get_sast_results_by_scan_id(
-                scan_id=scan_id, offset=offset, limit=limit,
-                sort=["+status", "+severity", "-queryname"]
-            )
-            page += 1
-            sast_results.extend(sast_results_collection.get("results"))
+    sast_results = get_all_sast_result_by_scan_id(scan_id)
     report_content = []
     for result in sast_results:
         if result.state == "TO_VERIFY":
@@ -71,6 +52,30 @@ def get_sast_result(project_name: str, branch: str, scan_id: str) -> List[dict]:
             }
         )
     return report_content
+
+
+def get_all_sast_result_by_scan_id(scan_id):
+    offset = 0
+    limit = 100
+    page = 1
+    sast_results_collection = get_sast_results_by_scan_id(
+        scan_id=scan_id, offset=offset, limit=limit,
+        sort=["+status", "+severity", "-queryname"]
+    )
+    total_count = int(sast_results_collection.get("totalCount"))
+    sast_results = sast_results_collection.get("results")
+    if total_count > limit:
+        while True:
+            offset = page * limit
+            if offset >= total_count:
+                break
+            sast_results_collection = get_sast_results_by_scan_id(
+                scan_id=scan_id, offset=offset, limit=limit,
+                sort=["+status", "+severity", "-queryname"]
+            )
+            page += 1
+            sast_results.extend(sast_results_collection.get("results"))
+    return sast_results
 
 
 sql_create_table = """
