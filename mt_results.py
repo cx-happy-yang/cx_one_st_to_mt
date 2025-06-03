@@ -116,6 +116,7 @@ def apply_predicates(scan_results, predicates_data: dict, project_id: str, scan_
                 "comment": comment
             }
         )
+    logger.info(f"request_body: \n {request_body}")
     predicate_severity_and_state_by_similarity_id_and_project_id(request_body=request_body)
     logger.info(f"finish apply predicates to project: {project_name}, branch: {branch}")
     write_into_project_branch_pickle_file(project_name, branch)
