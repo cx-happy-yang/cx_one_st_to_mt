@@ -158,6 +158,10 @@ if __name__ == '__main__':
             if not predicates_data:
                 logger.info("predicates_data is empty, skip!")
                 continue
-            apply_predicates(
-                scan_results=scan_results, predicates_data=predicates_data, project_id=project_id, scan_id=scan_id
-            )
+            try:
+                apply_predicates(
+                    scan_results=scan_results, predicates_data=predicates_data, project_id=project_id, scan_id=scan_id
+                )
+            except ValueError:
+                logger.info(f"Can not apply predicates to project_id: {project_id}, scan_id: {scan_id}")
+                continue
